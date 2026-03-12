@@ -1,0 +1,8 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/convert"
+  to = "/.netlify/functions/convert"
+  status = 200

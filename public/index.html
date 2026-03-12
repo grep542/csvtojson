@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV to JSON</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <p class="eyebrow">CSV Converter</p>
+        <h1>Turn any CSV into JSON</h1>
+        <p class="lede">
+          Choose a CSV file or paste CSV text, then convert it on the backend.
+        </p>
+
+        <label class="label" for="fileInput">CSV file</label>
+        <input id="fileInput" type="file" accept=".csv,text/csv" />
+
+        <label class="label" for="csvInput">CSV text</label>
+        <textarea id="csvInput" placeholder="name,email&#10;Ada,ada@example.com"></textarea>
+
+        <div class="actions">
+          <button id="convertButton">Convert to JSON</button>
+          <button id="sampleButton" class="secondary">Load sample</button>
+        </div>
+
+        <p id="status" class="status"></p>
+      </section>
+
+      <section class="panel output">
+        <div class="output-head">
+          <h2>JSON output</h2>
+          <button id="copyButton" class="secondary">Copy JSON</button>
+        </div>
+        <pre id="jsonOutput">[]</pre>
+      </section>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const csvInput = document.getElementById("csvInput");
+      const convertButton = document.getElementById("convertButton");
+      const sampleButton = document.getElementById("sampleButton");
+      const copyButton = document.getElementById("copyButton");
+      const jsonOutput = document.getElementById("jsonOutput");
+      const status = document.getElementById("status");
+
+      fileInput.addEventListener("change", async (event) => {
+        const [file] = event.target.files;
+        if (!file) return;
+
+        csvInput.value = await file.text();
+        status.textContent = `Loaded ${file.name}`;
+      });
+
+      sampleButton.addEventListener("click", () => {
+        csvInput.value = "name,email,role\nAda,ada@example.com,Engineer\nLinus,linus@example.com,Maintainer";
+        status.textContent = "Loaded sample CSV";
+      });
+
+      convertButton.addEventListener("click", async () => {
+        status.textContent = "Converting...";
+
+        try {
+          const response = await fetch("/api/convert", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ csv: csvInput.value })
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload.error || "Conversion failed");
+          }
+
+          jsonOutput.textContent = JSON.stringify(payload.rows, null, 2);
+          status.textContent = `Converted ${payload.rows.length} row(s)`;
+        } catch (error) {
+          status.textContent = error.message;
+        }
+      });
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(jsonOutput.textContent);
+          status.textContent = "JSON copied to clipboard";
+        } catch (error) {
+          status.textContent = "Copy failed";
+        }
+      });
+    </script>
+  </body>
+</html>

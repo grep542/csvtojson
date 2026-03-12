@@ -1,0 +1,9 @@
+{
+  "name": "csv-json-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple client and backend that converts CSV into JSON",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
